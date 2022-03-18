@@ -169,10 +169,10 @@ def permutation_test_t():
 
 if __name__ == '__main__':
     # A
-    # check_first_function()
+    check_first_function()
     # create_fastas()
     # create_fastas_for_comparison()
-    largest_indel()
+    # largest_indel()
     # compare_fastas()
     # # B
     # find_strs_test()
