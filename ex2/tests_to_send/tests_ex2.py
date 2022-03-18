@@ -1,4 +1,4 @@
-from ex2 import *
+from ex2.ex2 import *
 
 expected_cases = [
     ("GGTTGACTA", "TGTTACGG", 13, 'GTTGAC', 'GTT-AC'),
