@@ -4,10 +4,6 @@ import random
 import re
 import time
 
-letters = ['A', 'C', 'G', 'T']
-options = ["".join([x, y, z]) for x in letters for y in letters for z in letters]
-
-
 # Auxiliary function to read a FASTA file. Returns a string
 
 def read_fasta(filename):
@@ -95,6 +91,8 @@ def find_strs(S, s, r):
 
 
 def find_strs3(S, r):
+    letters = ['A', 'C', 'G', 'T']
+    options = ["".join([x, y, z]) for x in letters for y in letters for z in letters]
     count = 0
     for option in options:
         if option not in ['AAA', 'TTT', 'GGG', 'CCC']:
