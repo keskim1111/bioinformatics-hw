@@ -2,6 +2,7 @@ import functools
 import time
 from datetime import datetime
 
+from Bio.Align.Applications import MafftCommandline
 
 from ex3 import upgma, globalpw_dist, find_k_mers, num_of_k_mer_in_s, kmer_dist, matrix
 from Bio import SeqIO
@@ -181,7 +182,25 @@ def write_to_file(file, content):
 
 ####################### end F
 
+##############################################G
+def g_question():
+    res = align_sequences("sequences.fasta", "msa_result")
+    print(res)
+
+def align_sequences(filename, aln_filename):
+    MAFFT_EXE = r'C:\Users\kimke\Desktop\mafft\mafft-7.490-win64-signed\mafft-win\usr\bin\mafft'
+    mafft_cline = MafftCommandline(MAFFT_EXE, input=filename)
+    stdout, stderr = mafft_cline()
+    with open("d.fasta","w") as handle:
+        handle.write(stdout)
+
+
+##############################################end G
+
 if __name__ == '__main__':
     # closed_tests()
-    f_question()
+    # f_question()
+    g_question()
+
+
     pass
