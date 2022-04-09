@@ -1,4 +1,4 @@
-from ex3 import upgma, globalpw_dist, find_k_mers, num_of_k_mer_in_s, kmer_dist
+from ex3 import upgma, globalpw_dist, find_k_mers, num_of_k_mer_in_s, kmer_dist, matrix
 
 
 def alpha_labels(start, end):
@@ -8,21 +8,25 @@ def alpha_labels(start, end):
     return labels
 
 
-# Test table data and corresponding labels
-M_labels = alpha_labels("A", "G")  # A through G
-M = [
-    [0],
-    [19],
-    [27, 31],
-    [8, 18, 26],
-    [33, 36, 41, 31],
-    [18, 1, 32, 17, 35],
-    [13, 13, 29, 14, 28, 12]
-]
+def test_upgma():
+    # Test table data and corresponding labels
+    M_labels = alpha_labels("A", "G")  # A through G
+    dist_matrix = matrix(7, 6)
+    M = [
+        [0, 0, 0, 0, 0, 0],
+        [19, 0, 0, 0, 0, 0],
+        [27, 31, 0, 0, 0, 0],
+        [8, 18, 26, 0, 0, 0],
+        [33, 36, 41, 31, 0, 0],
+        [18, 1, 32, 17, 35, 0],
+        [13, 13, 29, 14, 28, 12]
+    ]
+    dist_matrix.set_whole_matrix(M)
+
+    # should output: '((((A,D),((B,F),G)),C),E)'
+    print(upgma(dist_matrix, M_labels))
 
 
-# should output: '((((A,D),((B,F),G)),C),E)'
-# print(upgma(M, M_labels))
 # seq_lst = ['ACCGT', "ACG"]
 # print(globalpw_dist(seq_lst))
 
@@ -72,9 +76,10 @@ def kmer_dist_test():
 def closed_tests():
     test_kmer()
     test_num_of_k_mer_in_s()
+    kmer_dist_test()
 
 
 if __name__ == '__main__':
-    closed_tests()
-    kmer_dist_test()
+    # closed_tests()
+    test_upgma()
     pass
