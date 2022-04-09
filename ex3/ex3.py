@@ -5,6 +5,7 @@ import random
 from Bio.Align import substitution_matrices
 from Bio.SubsMat import MatrixInfo
 from Bio import pairwise2
+import copy
 
 
 # Helpers for upgma
@@ -14,7 +15,7 @@ def find_smallest_distance_cell(distance_matrix):
         smallest_row = -2
         smallest_col = -2
         for i in range(distance_matrix.rows):
-            for j in range(distance_matrix.cols):
+            for j in range(i):
                 val = distance_matrix.get(i, j)
                 if val < smallest_val:
                     smallest_val = val
@@ -25,20 +26,20 @@ def find_smallest_distance_cell(distance_matrix):
         raise IndexError
 
 
-
-
-
-def update_row_until_first(d, first, second):
-    res = []
+def update_row_until_first(distance_matrix, first, second):
+    # first item in each row is 0
+    res = [0]
     for i in range(0, first):
-        res.append(d[first][i] / 2 + d[second][i] / 2)
-    return res
+        res.append((distance_matrix.get(first, i) + distance_matrix.get(second, i))/2)
+    zeros =  distance_matrix.rows - len(res)
+    for j in range(zeros):
+        res.append(0)
+    distance_matrix.set_row(first, res)
 
 
 def update_col(distance_matrix, first, second):
     for i in range(first + 1, second):
-        distance_matrix.set((distance_matrix[i][first] + distance_matrix[second][i]) / 2, i, first)
-
+        distance_matrix.set((distance_matrix.get(i,first) + distance_matrix.get(second, i)) / 2, i, first)
 
 def update_row_from_second(distance_matrix, first, second):
     for i in range(second + 1, distance_matrix.rows):
@@ -49,14 +50,13 @@ def update_row_from_second(distance_matrix, first, second):
 
 
 def update_distance_matrix(distance_matrix, i, j):
-    if i < j:
-        join_i_j_in_d(distance_matrix, i, j)
-    else:
-        join_i_j_in_d(distance_matrix, j, i)
+    if j < i:
+        i, j = j, i
+    join_i_j_in_d(distance_matrix, i, j)
 
 
 def join_i_j_in_d(distance_matrix, first, second):
-    distance_matrix.set_row(first, update_row_until_first(distance_matrix, first, second))
+    update_row_until_first(distance_matrix, first, second)
     update_col(distance_matrix, first, second)
     update_row_from_second(distance_matrix, first, second)
     distance_matrix.delete_row(second)
@@ -66,12 +66,10 @@ def join_i_j_in_d(distance_matrix, first, second):
 
 
 def update_names(names, i, j):
-    if i < j:
-        names[i] = f"({names[i]},{names[j]})"
-        del names[j]
-    else:  # j < i
-        names[j] = f"({names[i]},{names[j]})"
-        del names[i]
+    if j < i:
+        i, j = j, i
+    names[i] = f"({names[i]},{names[j]})"
+    del names[j]
 
 
 # Helpers for globalpw_dist”
@@ -83,8 +81,8 @@ def calc_score(S, T, sub_matrix):
 def create_d_matrix(similarity_matrix, n):
     max_val = similarity_matrix.find_maximal_value()
     distance_matrix = matrix(n, n)
-    for i in range(similarity_matrix.rows - 1):
-        for j in range(similarity_matrix.cols - 1):
+    for i in range(similarity_matrix.rows):
+        for j in range(similarity_matrix.cols):
             similarity_value = similarity_matrix.get(i, j)
             distance_matrix.set(max_val - similarity_value + 1, i, j)
     return distance_matrix
@@ -97,6 +95,8 @@ def create_similarity_matrix(seq_lst, sub_matrix, n):
             S = seq_lst[i]
             T = seq_lst[j]
             similarity.set(calc_score(S, T, sub_matrix), i, j)
+    print("similarity")
+    print(similarity)
     return similarity
 
 
@@ -148,7 +148,7 @@ def calculate_k_mer_dist(seq1, seq2, seq_to_kmers_dict):
 
 
 class matrix:
-    def __init__(self, n_rows, n_cols):
+    def __init__(self, n_rows, n_cols, is_triangolar = False):
         assert n_cols > 0 and n_cols > 0
         self.matrix = [[0] * (n_cols + 1) for i in range(n_rows + 1)]
         self.rows = n_rows
@@ -189,12 +189,12 @@ class matrix:
                     self.set(val, i, j)
 
     # def set_a_triangolar(self):
-    #     triangolar = matrix(self.rows, self.cols)
+    #
     #     for i in range(self.rows):
-    #         for j in range(self.cols):
+    #         for j in range(i):
     #
     #     return triangolar
-    #
+
 
     def find_maximal_value(self):
         maximal_value = float("-inf")
@@ -206,8 +206,8 @@ class matrix:
 
 # TODO find out D how it looks
 def upgma(D, seq_names_lst):
-    distance_matrix = D
-    names = seq_names_lst
+    distance_matrix = copy.deepcopy(D)
+    names = copy.deepcopy(seq_names_lst)
     while len(names) > 1:
         i, j = find_smallest_distance_cell(distance_matrix)
         update_distance_matrix(distance_matrix, i, j)
