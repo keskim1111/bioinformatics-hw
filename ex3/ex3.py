@@ -4,7 +4,7 @@ import math
 import random
 from Bio.Align import substitution_matrices
 from Bio.SubsMat import MatrixInfo
-from Bio import pairwise2
+from Bio import pairwise2, SeqIO
 import copy
 
 
@@ -26,49 +26,55 @@ def find_smallest_distance_cell(distance_matrix):
         raise IndexError
 
 
-def update_row_until_first(distance_matrix, first, second):
+def update_row_until_first(distance_matrix, first, second, names):
     # first item in each row is 0
     res = [0]
     for i in range(0, first):
-        res.append((distance_matrix.get(first, i) + distance_matrix.get(second, i))/2)
-    zeros =  distance_matrix.rows - len(res)
+        res.append(
+            (names[first][1] * distance_matrix.get(first, i) + names[second][1] * distance_matrix.get(second, i)) / (
+                    names[first][1] + names[second][1]))
+    zeros = distance_matrix.rows - len(res)
     for j in range(zeros):
         res.append(0)
     distance_matrix.set_row(first, res)
 
 
-def update_col(distance_matrix, first, second):
+def update_col(distance_matrix, first, second, names):
     for i in range(first + 1, second):
-        distance_matrix.set((distance_matrix.get(i,first) + distance_matrix.get(second, i)) / 2, i, first)
+        distance_matrix.set(
+            (names[first][1] * distance_matrix.get(i, first) + names[second][1] * distance_matrix.get(second, i)) / (
+                    names[first][1] + names[second][1]), i, first)
 
-def update_row_from_second(distance_matrix, first, second):
+
+def update_row_from_second(distance_matrix, first, second, names):
     for i in range(second + 1, distance_matrix.rows):
-        distance_matrix.set((distance_matrix.get(i, first) + distance_matrix.get(i, second)) / 2, i, first)
+        distance_matrix.set(
+            (distance_matrix.get(i, first) * names[first][1] + names[second][1] * distance_matrix.get(i, second)) / (
+                    names[first][1] + names[second][1]), i, first)
         distance_matrix.delete_index(i, second)
     # removes a col
     distance_matrix.cols -= 1
 
 
-def update_distance_matrix(distance_matrix, i, j):
+def update_distance_matrix(distance_matrix, i, j, names):
     if j < i:
         i, j = j, i
-    join_i_j_in_d(distance_matrix, i, j)
+    join_i_j_in_d(distance_matrix, i, j, names)
 
 
-def join_i_j_in_d(distance_matrix, first, second):
-    update_row_until_first(distance_matrix, first, second)
-    update_col(distance_matrix, first, second)
-    update_row_from_second(distance_matrix, first, second)
+def join_i_j_in_d(distance_matrix, first, second, names):
+    update_row_until_first(distance_matrix, first, second, names)
+    update_col(distance_matrix, first, second, names)
+    update_row_from_second(distance_matrix, first, second, names)
     distance_matrix.delete_row(second)
     # removed a row
     distance_matrix.rows -= 1
 
 
-
 def update_names(names, i, j):
     if j < i:
         i, j = j, i
-    names[i] = f"({names[i]},{names[j]})"
+    names[i] = ((names[i][0], names[j][0]), names[i][1] + names[j][1])
     del names[j]
 
 
@@ -95,8 +101,6 @@ def create_similarity_matrix(seq_lst, sub_matrix, n):
             S = seq_lst[i]
             T = seq_lst[j]
             similarity.set(calc_score(S, T, sub_matrix), i, j)
-    print("similarity")
-    print(similarity)
     return similarity
 
 
@@ -147,13 +151,40 @@ def calculate_k_mer_dist(seq1, seq2, seq_to_kmers_dict):
     return math.sqrt(res)
 
 
+# Helpers for eval_dist
+
+def tree_splits_names(tree, lst):
+    lst1 = []
+    lst2 = []
+    if isinstance(tree[0], tuple):
+        lst1 = tree_splits_names(tree[0], lst)
+    if isinstance(tree[1], tuple):
+        lst2 = tree_splits_names(tree[1], lst)
+    return lst1 + lst2 + [tree]
+
+def read_fasta(path):
+    seq_lst = []
+    name_lst = []
+    record_iterator = SeqIO.parse(path, "fasta")
+    # infinite loop
+    while True:
+        try:
+            # get the next item
+            element = next(record_iterator)
+            seq_lst.append(str(element.seq))
+            name_lst.append(str(element.name))
+        except StopIteration:
+            # if StopIteration is raised, break from loop
+            break
+    return seq_lst, name_lst
+
+
 class matrix:
-    def __init__(self, n_rows, n_cols, is_triangolar = False):
+    def __init__(self, n_rows, n_cols):
         assert n_cols > 0 and n_cols > 0
         self.matrix = [[0] * (n_cols + 1) for i in range(n_rows + 1)]
         self.rows = n_rows
         self.cols = n_cols
-        # self.triangoler = self.set_a_triangolar()
 
     def get(self, i, j):
         return self.matrix[i + 1][j + 1]
@@ -162,7 +193,7 @@ class matrix:
         self.matrix[i + 1][j + 1] = x
 
     def delete_index(self, i, j):
-        del self.matrix[i+1][j+1]
+        del self.matrix[i + 1][j + 1]
 
     def delete_row(self, row):
         del self.matrix[row + 1]
@@ -188,14 +219,6 @@ class matrix:
                     val = input_matrix[i][j]
                     self.set(val, i, j)
 
-    # def set_a_triangolar(self):
-    #
-    #     for i in range(self.rows):
-    #         for j in range(i):
-    #
-    #     return triangolar
-
-
     def find_maximal_value(self):
         maximal_value = float("-inf")
         for i in range(len(self.matrix) - 1):
@@ -207,12 +230,12 @@ class matrix:
 # TODO find out D how it looks
 def upgma(D, seq_names_lst):
     distance_matrix = copy.deepcopy(D)
-    names = copy.deepcopy(seq_names_lst)
+    names = [(name, 1) for name in seq_names_lst]
     while len(names) > 1:
         i, j = find_smallest_distance_cell(distance_matrix)
-        update_distance_matrix(distance_matrix, i, j)
+        update_distance_matrix(distance_matrix, i, j, names)
         update_names(names, i, j)
-    return names[0]
+    return names[0][0]
 
 
 def globalpw_dist(seq_lst):
@@ -230,6 +253,14 @@ def kmer_dist(seq_lst, k=3):
 
 
 def eval_dist(seq_lst, msa_aln_path, dist_func=globalpw_dist):
+    distanse_matrix = dist_func(seq_lst)
+    seq_lst_msa, name_lst = read_fasta(msa_aln_path)
+    result_tree = upgma(distanse_matrix, name_lst)
+    print(result_tree)
+    print(type(result_tree))
+    keys = tree_splits_names(result_tree, [])
+    print(keys)
+
     """
 
     :param seq_lst: list
