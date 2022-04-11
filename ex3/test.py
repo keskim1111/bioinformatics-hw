@@ -7,19 +7,7 @@ from Bio.Align.Applications import MafftCommandline
 from ex3 import upgma, globalpw_dist, find_k_mers, num_of_k_mer_in_s, kmer_dist, matrix, eval_dist
 from Bio import SeqIO
 
-
-def timeit(func):
-    @functools.wraps(func)
-    def new_func(*args, **kwargs):
-        start_time = time.time()
-        result = func(*args, **kwargs)
-        elapsed_time = time.time() - start_time
-        print('function [{}] finished in {} ms'.format(
-            func.__name__, int(elapsed_time * 1_000)))
-        return result
-
-    return new_func
-
+from helper import timeit
 
 dist_kmer = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0.0, 33.15116890850155, 19.28730152198591, 43.64630568559039, 39.01281840626232, 35.04283093587046,
@@ -115,7 +103,6 @@ def test_according_to_pp():
     print("test test_according_to_pp OK")
 
 
-
 def compare_sets(set1, set2):
     if len(set1) == len(set2):
         if set1 == set2:
@@ -154,7 +141,6 @@ def test_num_of_k_mer_in_s():
     print("test test_num_of_k_mer_in_s OK")
 
 
-
 def closed_tests():
     test_kmer()
     test_num_of_k_mer_in_s()
@@ -189,8 +175,7 @@ def run_kmer(seq_lst, name_lst):
     print(distance_matrix_kmer)
     print("*****************kmer************************")
     result_of_upgma_kmer = upgma(distance_matrix_kmer, name_lst)
-    content_kmer = f"result_of_upgma_kmer:\n {result_of_upgma_kmer}"
-    write_to_file("results/result_kmer", content_kmer)
+    write_to_file("results/kmer_dist_tree", result_of_upgma_kmer, "dnd")
 
 
 @timeit
@@ -202,8 +187,7 @@ def run_global(seq_lst, name_lst):
     print(distance_matrix_globalpw)
     print("*****************globalpw************************")
     result_of_upgma_globalpw = upgma(distance_matrix_globalpw, name_lst)
-    content_global = f"result_of_upgma_globalpw:\n {result_of_upgma_globalpw}\n"
-    write_to_file("results/result_global", content_global)
+    write_to_file("results/globalpw_dist_tree", result_of_upgma_globalpw, "dnd")
 
 
 @timeit
@@ -219,9 +203,9 @@ def current_time():
     return dt_string
 
 
-def write_to_file(file, content):
-    with open(f"{file}_{current_time()}.txt", "w") as f:
-        f.write(content)
+def write_to_file(file, content, ending ='txt'):
+    with open(f"{file}_{current_time()}.{ending}", "w") as f:
+        f.write(str(content))
     return file
 
 
@@ -259,9 +243,15 @@ def read_fasta_to_lst(path):
 
 @timeit
 def test_eval_dist():
-    seq_lst = read_fasta_to_lst("sequences.fasta")
-    eval_dist(seq_lst, "sequences.aln.fasta", kmer_dist)
-
+    try:
+        seq_lst = read_fasta_to_lst("sequences.fasta")
+        counter_kmer = eval_dist(seq_lst, "sequences.aln.fasta", kmer_dist)
+        counter_global = eval_dist(seq_lst, "sequences.aln.fasta", globalpw_dist)
+        write_to_file("test_eval_dist_results.txt",
+                      f"kmer counter:\n{counter_kmer}\n global counter:\n{counter_global}")
+        print("finished test_eval_dist")
+    except:
+        print("There was a problem with test_eval_dist")
     pass
 
 
@@ -269,7 +259,7 @@ def test_eval_dist():
 
 if __name__ == '__main__':
     closed_tests()
-    # f_question())
+    # f_question()
     # g_question()
     # test_eval_dist()
     pass

@@ -2,7 +2,6 @@
 # Put your code instead of the 'pass' statements
 import math
 import random
-from Bio.Align import substitution_matrices
 from Bio.SubsMat import MatrixInfo
 from Bio import pairwise2, SeqIO
 import copy
@@ -151,32 +150,11 @@ def calculate_k_mer_dist(seq1, seq2, seq_to_kmers_dict):
     return math.sqrt(res)
 
 
-# Helpers for eval_dist
-
-def tree_splits_names(tree, lst):
-    lst1 = []
-    lst2 = []
-    if isinstance(tree[0], tuple):
-        lst1 = tree_splits_names(tree[0], lst)
-    if isinstance(tree[1], tuple):
-        lst2 = tree_splits_names(tree[1], lst)
-    return lst1 + lst2 + [tree]
-
-def read_fasta(path):
-    seq_lst = []
-    name_lst = []
-    record_iterator = SeqIO.parse(path, "fasta")
-    # infinite loop
-    while True:
-        try:
-            # get the next item
-            element = next(record_iterator)
-            seq_lst.append(str(element.seq))
-            name_lst.append(str(element.name))
-        except StopIteration:
-            # if StopIteration is raised, break from loop
-            break
-    return seq_lst, name_lst
+def get_readable_matrix_string(matrix):
+    strings = []
+    for row in matrix:
+        strings.append(str(row))
+    return '\n'.join(strings)
 
 
 class matrix:
@@ -201,14 +179,8 @@ class matrix:
     def set_row(self, row_index, new_row):
         self.matrix[row_index + 1] = new_row
 
-    def get_readable_matrix_string(self, matrix):
-        strings = []
-        for row in matrix:
-            strings.append(str(row))
-        return '\n'.join(strings)
-
     def __str__(self):
-        return self.get_readable_matrix_string(self.matrix)
+        return get_readable_matrix_string(self.matrix)
 
     def set_whole_matrix(self, input_matrix):
         new_rows_len = len(input_matrix)
@@ -227,7 +199,6 @@ class matrix:
         return maximal_value
 
 
-# TODO find out D how it looks
 def upgma(D, seq_names_lst):
     distance_matrix = copy.deepcopy(D)
     names = [(name, 1) for name in seq_names_lst]
@@ -237,7 +208,6 @@ def upgma(D, seq_names_lst):
         update_names(names, i, j)
     return names[0][0]
 
-
 def globalpw_dist(seq_lst):
     n = len(seq_lst)
     sub_matrix = MatrixInfo.blosum62
@@ -245,22 +215,66 @@ def globalpw_dist(seq_lst):
     distance_matrix = create_d_matrix(similarity_matrix, n)
     return distance_matrix
 
-
 def kmer_dist(seq_lst, k=3):
     seq_to_kmers = seq_lst_to_kmers_dict(seq_lst, k)
     k_mer_distance_matrix = create_k_mer_dist_matrix(seq_lst, seq_to_kmers)
     return k_mer_distance_matrix
 
 
-def eval_dist(seq_lst, msa_aln_path, dist_func=globalpw_dist):
-    distanse_matrix = dist_func(seq_lst)
-    seq_lst_msa, name_lst = read_fasta(msa_aln_path)
-    result_tree = upgma(distanse_matrix, name_lst)
-    print(result_tree)
-    print(type(result_tree))
-    keys = tree_splits_names(result_tree, [])
-    print(keys)
+# Helpers for eval_dist
 
+def tree_splits_names(tree, lst):
+    lst1 = []
+    lst2 = []
+    if isinstance(tree[0], tuple):
+        lst1 = tree_splits_names(tree[0], lst)
+    if isinstance(tree[1], tuple):
+        lst2 = tree_splits_names(tree[1], lst)
+    return lst1 + lst2 + [tree]
+
+
+def read_fasta(path):
+    seq_lst = []
+    name_lst = []
+    record_iterator = SeqIO.parse(path, "fasta")
+    # infinite loop
+    while True:
+        try:
+            # get the next item
+            element = next(record_iterator)
+            seq_lst.append(str(element.seq))
+            name_lst.append(str(element.name))
+        except StopIteration:
+            # if StopIteration is raised, break from loop
+            break
+    return seq_lst, name_lst
+
+
+def construct_new_sequence(seq, indexes):
+    new_seq = ""
+    for i in range(len(seq)):
+        if i in indexes:
+            new_seq += seq[i]
+    return new_seq
+
+
+def construct_new_sequences(msa_seq_lst, indexes):
+    new_msa_seq_lst = []
+    for seq in msa_seq_lst:
+        new_msa_seq_lst.append(construct_new_sequence(seq, indexes).replace("-", ""))
+    return new_msa_seq_lst
+
+
+def one_iteration(n, seq_lst_msa, name_lst, dist_func):
+    indexes = random.sample(range(n), int(n / 2))
+    new_msa_seq_lst = construct_new_sequences(seq_lst_msa, indexes)
+    distance_matrix = dist_func(new_msa_seq_lst)
+    tree = upgma(distance_matrix, name_lst)
+    splits = tree_splits_names(tree, [])
+    return splits
+
+
+def eval_dist(seq_lst, msa_aln_path, dist_func=globalpw_dist):
     """
 
     :param seq_lst: list
@@ -272,7 +286,18 @@ def eval_dist(seq_lst, msa_aln_path, dist_func=globalpw_dist):
         keys are tuples representing each of the splits in the UPGMA tree T
         values are the counters of the splits in the random permutations
     """
-    pass
+    distance_matrix = dist_func(seq_lst)
+    seq_lst_msa, name_lst = read_fasta(msa_aln_path)
+    n = len(seq_lst_msa[0])
+    result_tree = upgma(distance_matrix, name_lst)
+    keys = tree_splits_names(result_tree, [])
+    counter_dict = {key: 0 for key in keys}
+    for i in range(100):
+        splits = one_iteration(n, seq_lst_msa, name_lst, dist_func)
+        for split in splits:
+            if split in counter_dict:
+                counter_dict[split] += 1
+    return counter_dict
 
 
 if __name__ == '__main__':
