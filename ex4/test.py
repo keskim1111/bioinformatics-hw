@@ -8,6 +8,7 @@ import os
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
+
 def _pickle(fp, object="", is_load=False, is_dump=False):
     if is_dump:
         with open(fp, "wb") as f:
@@ -16,6 +17,7 @@ def _pickle(fp, object="", is_load=False, is_dump=False):
         with open(fp, "rb") as f:
             return pickle.load(f)
     return None
+
 
 def write_to_file(file, content, is_log=False):
     now = datetime.now()
@@ -28,6 +30,7 @@ def write_to_file(file, content, is_log=False):
     with open(file, "a") as f:
         f.write(line)
     return file
+
 
 def test_a():
     X = np.array([[1, 1, 1], [4, 4, 4]])
@@ -162,8 +165,8 @@ def search_for_3_best_sets():
 
 if __name__ == '__main__':
     # you can write whatever you want here
-    # test_a()
+    test_a()
     # test_b()
     # runs_d()
-    search_for_3_best_sets()
+    # search_for_3_best_sets()
     # pprint(_pickle("genes_missing_set.dat", is_load=True))
