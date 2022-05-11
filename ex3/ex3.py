@@ -302,7 +302,7 @@ def eval_dist(seq_lst, msa_aln_path, dist_func=globalpw_dist):
 
 if __name__ == '__main__':
     MAFFT_EXE_PATH = r"WHERE_YOU_UNZIPPED_MAFFT\usr\bin\mafft"  # depends on your operating system
-    seqs_path = r"sequences.fasta"
-    msa_aln_path = r"sequences.aln.fasta"
+    seqs_path = r"../../../Downloads/315532226_ex3/sequences.fasta"
+    msa_aln_path = r"../../../Downloads/315532226_ex3/sequences.aln.fasta"
     # you can write whatever you want here
     pass
