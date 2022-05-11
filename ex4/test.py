@@ -165,8 +165,8 @@ def search_for_3_best_sets():
 
 if __name__ == '__main__':
     # you can write whatever you want here
-    test_a()
+    # test_a()
     # test_b()
-    # runs_d()
+    runs_d()
     # search_for_3_best_sets()
     # pprint(_pickle("genes_missing_set.dat", is_load=True))

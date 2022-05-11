@@ -33,16 +33,16 @@ def L_fold_knn(L, K, X, y):
     groups_idx = randonly_divide_idx(X, L)
     cnt = 0
     for i in range(len(groups_idx)):
-        current_group_array = X[groups_idx[i], :]
+        current_group_idx = groups_idx[i]
         other_groups = groups_idx[:i] + groups_idx[i + 1:]
         other_groups_idx = [item for sublist in other_groups for item in sublist]
         new_X = X[other_groups_idx, :]
         new_y = y[other_groups_idx, :]
-
-        for j in range(current_group_array.shape[0]):
-            res = knn(new_X, new_y, current_group_array[j], K)
+        # check if knn result is like the real result in y for each item in current group
+        for idx in current_group_idx:
+            res = knn(new_X, new_y, X[idx], K)
             # TODO fix this
-            if res == y[j]:
+            if res == y[idx]:
                 cnt += 1
     return cnt / n
 
