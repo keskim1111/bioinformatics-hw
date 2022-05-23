@@ -1,0 +1,16 @@
+kmer counter:
+{('Homo_sapiens', 'Danio_rerio'): 100,
+ ('Trichuris_trichiura', 'Loa_loa'): 100,
+  (('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')): 100,
+   ('Litopenaeus_vannamei', 'Laodelphax_striatella'): 86,
+    ((('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')), ('Litopenaeus_vannamei', 'Laodelphax_striatella')): 86,
+     ('Dimocarpus_longan', 'Arabidopsis_thaliana'): 100,
+      ('Rhodotorula_toruloides_NP11', ('Dimocarpus_longan', 'Arabidopsis_thaliana')): 3,
+       (((('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')), ('Litopenaeus_vannamei', 'Laodelphax_striatella')), ('Rhodotorula_toruloides_NP11', ('Dimocarpus_longan', 'Arabidopsis_thaliana'))): 0,
+        ('Spodoptera_litura', 'Bombyx_mori'): 100,
+         ((((('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')), ('Litopenaeus_vannamei', 'Laodelphax_striatella')), ('Rhodotorula_toruloides_NP11', ('Dimocarpus_longan', 'Arabidopsis_thaliana'))), ('Spodoptera_litura', 'Bombyx_mori')): 0,
+          (((((('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')), ('Litopenaeus_vannamei', 'Laodelphax_striatella')), ('Rhodotorula_toruloides_NP11', ('Dimocarpus_longan', 'Arabidopsis_thaliana'))), ('Spodoptera_litura', 'Bombyx_mori')), 'Nematostella_vectensis'): 0}
+
+
+ global counter:
+{('Homo_sapiens', 'Danio_rerio'): 100, ('Trichuris_trichiura', 'Loa_loa'): 100, (('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')): 100, ((('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')), 'Litopenaeus_vannamei'): 88, (((('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')), 'Litopenaeus_vannamei'), 'Laodelphax_striatella'): 88, ('Dimocarpus_longan', 'Arabidopsis_thaliana'): 100, ((((('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')), 'Litopenaeus_vannamei'), 'Laodelphax_striatella'), ('Dimocarpus_longan', 'Arabidopsis_thaliana')): 68, ('Spodoptera_litura', 'Bombyx_mori'): 100, ('Nematostella_vectensis', ('Spodoptera_litura', 'Bombyx_mori')): 64, (((((('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')), 'Litopenaeus_vannamei'), 'Laodelphax_striatella'), ('Dimocarpus_longan', 'Arabidopsis_thaliana')), ('Nematostella_vectensis', ('Spodoptera_litura', 'Bombyx_mori'))): 56, ((((((('Homo_sapiens', 'Danio_rerio'), ('Trichuris_trichiura', 'Loa_loa')), 'Litopenaeus_vannamei'), 'Laodelphax_striatella'), ('Dimocarpus_longan', 'Arabidopsis_thaliana')), ('Nematostella_vectensis', ('Spodoptera_litura', 'Bombyx_mori'))), 'Rhodotorula_toruloides_NP11'): 56}
